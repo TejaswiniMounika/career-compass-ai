@@ -34,44 +34,23 @@ Return ONLY JSON:
 router.post("/roadmap", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    const career =
-      req.body.career ||
-      user.profile?.targetCareer ||
-      "Software Developer";
-
-    const skills = (user.profile?.skills || []).join(", ") || "beginner";
+    const career = req.body.career || user.profile?.targetCareer || "Software Developer";
 
     const raw = await askAI(`
-Create a concise 12-week placement roadmap for ${career}.
-
-Current skills: ${skills}
-
-Return ONLY valid JSON. No markdown.
-
+Create a 12-week placement preparation roadmap for a student targeting ${career}.
+Current skills: ${(user.profile?.skills || []).join(", ") || "beginner"}.
+Return ONLY JSON:
 {
   "career": "${career}",
   "weeks": [
-    {
-      "week": 1,
-      "focus": "short topic",
-      "tasks": ["task 1", "task 2", "task 3"],
-      "outcome": "short outcome"
-    }
+    {"week": 1, "focus": "...", "tasks": ["..."], "outcome": "..."}
   ]
 }
-
-Rules:
-- Exactly 12 weeks
-- Maximum 3 tasks per week
-- Keep every task short
-- Keep outcomes short
+Exactly 12 weeks.
 `);
-
     const data = safeJson(raw) || { career, weeks: [] };
-
     res.json(data);
   } catch (error) {
-    console.error("Roadmap error:", error);
     res.status(500).json({ message: error.message });
   }
 });
